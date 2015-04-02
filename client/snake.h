@@ -13,6 +13,7 @@ extern "C" {
 	// Limits of certain restrictions
 #define MAX_NUM_PLAYERS         4
 #define MAX_BOARD_SIZE          20
+#define MAX_NAME_LENGTH			16
 
 	// Directions
 #define UP                      0
@@ -33,7 +34,7 @@ extern "C" {
 	struct point {
 		int r;
 		int c;
-	}
+	};
 
 	/////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////
