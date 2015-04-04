@@ -22,7 +22,7 @@ public class GameRunner implements GameHandler {
 		this.players = players;
 		results = new HashMap<PersistentPlayer, Integer>();
 		finalRanks = new int[players.size()];
-		state = new GameState(players.size(), boardSize, players);
+		state = new GameState(players.size(), boardSize);
 	}
 	
 	public void setEventVisualiser(EventBasedFrameVisualiser<VisualGameState> vis) {
