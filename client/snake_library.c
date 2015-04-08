@@ -154,9 +154,17 @@ static int handleNewGame(char *args) {
 	return 0;
 }
 
-/**
- * Add some functions handling server commands here.
- */
+static int handleMoved(char* args) {
+
+}
+
+static int handleDied(char* args) {
+
+}
+
+static int handleFood(char* args) {
+
+}
 
 static int handleGameOver(char *args) {
 	fprintf(stderr, "Game over! %s\n", args);
@@ -182,7 +190,11 @@ static struct command commands[] = {
 	{"ERROR", handleError},
 	{"BADPROT", handleError},
 	{"NEWGAME", handleNewGame},
-	// Put server commands here.
+	// Snake server commands
+	{"MOVED", handleMoved},
+	{"DIED", handleDied},
+	{"FOOD", handleFood},
+
 	{"GAMEOVER", handleGameOver},
 };
 
