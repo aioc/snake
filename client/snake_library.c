@@ -45,7 +45,7 @@ static int sendPrintf(const char *fmt, ...) {
 		fprintf(stderr, "%s", buf);
 		fprintf(stderr, "\"\x1b[0m\n");
 	}
-	return 0; 
+	return 0;
 }
 
 static void ensureState(int s, const char* fn) {
@@ -135,7 +135,7 @@ static int handleName(char *args) {
 	state = STATE_INTERNAL;
 
 	if (name[0] == '\0') {
-		strcpy(name, "forget-a-lot");	
+		strcpy(name, "forget-a-lot");
 	}
 	if (sendPrintf("NAME %s %d %d %d\n", name, colour_r, colour_g, colour_b)) {
 		return -1;
@@ -150,7 +150,7 @@ static int handleError(char *args) {
 }
 
 static int handleNewGame(char *args) {
-	
+
 	return 0;
 }
 
@@ -159,7 +159,7 @@ static int handleNewGame(char *args) {
  */
 
 static int handleGameOver(char *args) {
-	fprintf(stderr, "Game over! %s\n", args);	
+	fprintf(stderr, "Game over! %s\n", args);
 	return 0;
 }
 
@@ -424,7 +424,3 @@ int main(int argc, char *argv[]) {
 	}
 	return EXIT_SUCCESS;
 }
-
-
-
-
