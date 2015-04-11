@@ -8,7 +8,7 @@ public class GamePerson {
 	// Front of the deque is the tail. So we push the heads on, pop the tails
 	// off.
 	private Deque<Position> blocks;
-	private boolean isAlive;
+	private boolean amAlive;
 
 	// Creates a person from head to tail. If they are not in a line, then will
 	// go horizontal first.
@@ -28,7 +28,7 @@ public class GamePerson {
 			}
 			blocks.push(cur);
 		}
-		isAlive = true;
+		amAlive = true;
 	}
 
 	public Position getHead() {
@@ -49,6 +49,10 @@ public class GamePerson {
 		return blocks.pop();
 	}
 	
+	public int getLength() {
+		return blocks.size();
+	}
+	
 	public void markArray(int arr[][], int num) {
 		for (Position p : blocks) {
 			arr[p.r][p.c] = num;
@@ -61,11 +65,11 @@ public class GamePerson {
 		}
 	}
 	
-	public boolean getAlive() {
-		return isAlive;
+	public boolean isAlive() {
+		return amAlive;
 	}
 	
 	public void kill() {
-		isAlive = false;
+		amAlive = false;
 	}
 }

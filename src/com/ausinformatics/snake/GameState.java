@@ -16,15 +16,16 @@ public class GameState {
 	private EventBasedFrameVisualiser<VisualGameState> vis;
 	private int numPlayers;
 	private int boardSize;
-	private PlayerMove[] moves;
+	private Action[] actions;
 	private GamePerson[] players;
 	private int board[][];
 	private int curFood;
+	private int tick;
 
 	public GameState(int numPlayers, int boardSize) {
 		this.numPlayers = numPlayers;
 		this.boardSize = boardSize;
-		moves = new PlayerMove[numPlayers];
+		actions = new Action[numPlayers];
 		players = new GamePerson[numPlayers];
 
 		Position p1 = new Position(0, 0);
@@ -46,6 +47,7 @@ public class GameState {
 		for (int i = 0; i < numPlayers; i++) {
 			players[i].markArray(board, i + 1);
 		}
+		tick = 0;
 		curFood = 0;
 		repopulateFood();
 	}
@@ -54,20 +56,25 @@ public class GameState {
 		this.vis = vis;
 	}
 
-	public void setPlayerMove(PlayerMove move, int id) {
-		moves[id] = move;
+	public void setPlayerAction(Action a, int id) {
+		actions[id] = a;
+	}
+	
+	public void killPlayer(int id) {
+		players[id].kill();
 	}
 
-	public void implementMoves() {
+	public void implementMoves(MoveReporter reporter) {
 		Position[] addedPositions = new Position[numPlayers];
 		boolean[] ateFood = new boolean[numPlayers];
 		boolean[] died = new boolean[numPlayers];
 		// Idea, go through all players, move their heads.
 		for (int i = 0; i < numPlayers; i++) {
-			if (!players[i].getAlive())
+			if (!players[i].isAlive())
 				continue;
-			Position head = players[i].addHead(moves[i].dir);
+			Position head = players[i].addHead(actions[i].dir);
 			addedPositions[i] = head;
+			reporter.setHead(i, head);
 			if (validP(head) && board[head.r][head.c] == FOOD) {
 				curFood--;
 				board[head.r][head.c] = BLANK;
@@ -75,13 +82,14 @@ public class GameState {
 			} else {
 				Position tail = players[i].removeTail();
 				board[tail.r][tail.c] = BLANK;
+				reporter.setTail(i, tail);
 			}
 		}
 		// Now go through checking for collisions.
 		// If two players have the same new position, then kill both.
 		for (int i = 0; i < numPlayers; i++) {
 			for (int j = 0; j < numPlayers; j++) {
-				if (players[i].getAlive() && players[j].getAlive()) {
+				if (players[i].isAlive() && players[j].isAlive()) {
 					if (addedPositions[i].equals(addedPositions[j])) {
 						died[i] = true;
 						died[j] = true;
@@ -90,7 +98,7 @@ public class GameState {
 			}
 		}
 		for (int i = 0; i < numPlayers; i++) {
-			if (!players[i].getAlive() || died[i])
+			if (!players[i].isAlive() || died[i])
 				continue;
 			if (!validP(addedPositions[i])) {
 				died[i] = true;
@@ -106,11 +114,33 @@ public class GameState {
 			if (died[i]) {
 				players[i].kill();
 				players[i].removeFromArray(board);
+				reporter.killPlayer(i);
 			}
 		}
 		repopulateFood();
+		tick++;
+	}
+
+	public boolean gameOver() {
+		int alive = 0;
+		for (int i = 0; i < numPlayers; i++) {
+			if (players[i].isAlive()) {
+				alive++;
+			}
+		}
+		if (alive <= 1) {
+			return true;
+		}
+		if (tick >= 200) {
+			return true;
+		}
+		return false;
 	}
 	
+	public int getLength(int player) {
+		return players[player].getLength();
+	}
+
 	private void repopulateFood() {
 		while (curFood < TOTAL_FOOD) {
 			Random rand = new Random();
@@ -128,4 +158,5 @@ public class GameState {
 	private boolean validP(Position p) {
 		return (p.r >= 0 && p.c >= 0 && p.r < boardSize && p.c < boardSize);
 	}
+
 }
