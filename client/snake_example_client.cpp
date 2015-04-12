@@ -37,7 +37,7 @@ void clientStartPositions(int pid, int length, struct point* positions) {
 		board[positions[i].r][positions[i].c] = pid + 1;
 	}
 	if (pid == id) {
-		myHead = positions[length - 1];
+		myHead = positions[0];
 	}
 }
 
