@@ -9,6 +9,7 @@ import com.ausinformatics.phais.core.visualisation.EventBasedFrameVisualiser;
 import com.ausinformatics.phais.core.visualisation.VisualGameEvent;
 import com.ausinformatics.snake.visualisation.SnakeAteFood;
 import com.ausinformatics.snake.visualisation.SnakeDied;
+import com.ausinformatics.snake.visualisation.SnakeFoodAdd;
 import com.ausinformatics.snake.visualisation.SnakeHeadAdd;
 import com.ausinformatics.snake.visualisation.SnakeTailRemove;
 import com.ausinformatics.snake.visualisation.VisualGameState;
@@ -59,7 +60,11 @@ public class GameState {
 		tick = 0;
 		curFood = 0;
 		initialReporter = new MoveReporter(numPlayers);
-		repopulateFood(initialReporter);
+		List<Position> foodP = new ArrayList<>();
+		repopulateFood(foodP);
+		for (Position p : foodP) {
+			initialReporter.foodAdd(p);
+		}
 	}
 
 	public void setUpForVisualisation(EventBasedFrameVisualiser<VisualGameState> vis) {
@@ -82,8 +87,8 @@ public class GameState {
 		for (int i = 0; i < numPlayers; i++) {
 			c.sendInfo("START " + i + " " + INITIAL_SIZE);
 			players[i].sendToPlayer(c);
-			initialReporter.sendToPlayer(c);
 		}
+		initialReporter.sendToPlayer(c);
 	}
 
 	public void setPlayerAction(Action a, int id) {
@@ -108,23 +113,23 @@ public class GameState {
 			Position head = players[i].addHead(actions[i].dir);
 			addedPositions[i] = head;
 			reporter.setHead(i, head);
-			events.add(new SnakeHeadAdd(i, head));
+			events.add(new SnakeHeadAdd(tick, i, head));
 			if (validP(head) && board[head.r][head.c] == FOOD) {
 				curFood--;
 				board[head.r][head.c] = BLANK;
 				ateFood[i] = true;
-				events.add(new SnakeAteFood(i));
+				events.add(new SnakeAteFood(tick, i));
 			} else {
 				Position tail = players[i].removeTail();
 				board[tail.r][tail.c] = BLANK;
 				reporter.setTail(i, tail);
-				events.add(new SnakeTailRemove(i, tail));
+				events.add(new SnakeTailRemove(tick, i, tail));
 			}
 		}
 		// Now go through checking for collisions.
 		// If two players have the same new position, then kill both.
 		for (int i = 0; i < numPlayers; i++) {
-			for (int j = 0; j < numPlayers; j++) {
+			for (int j = i + 1; j < numPlayers; j++) {
 				if (players[i].isAlive() && players[j].isAlive()) {
 					if (addedPositions[i].equals(addedPositions[j])) {
 						died[i] = true;
@@ -152,10 +157,15 @@ public class GameState {
 				players[i].removeFromArray(board);
 				reporter.killPlayer(i);
 				allEvents.get(i).clear();
-				allEvents.get(i).add(new SnakeDied(i, addedPositions[i]));
+				allEvents.get(i).add(new SnakeDied(tick, i, addedPositions[i]));
 			}
 		}
-		repopulateFood(reporter);
+		List<Position> foodP = new ArrayList<>();
+		repopulateFood(foodP);
+		for (Position p : foodP) {
+			reporter.foodAdd(p);
+			vis.giveEvent(new SnakeFoodAdd(tick, p));
+		}
 		tick++;
 		List<VisualGameEvent> finalEvents = new ArrayList<>();
 		for (List<VisualGameEvent> l : allEvents) {
@@ -184,7 +194,7 @@ public class GameState {
 		return players[player].getLength();
 	}
 
-	private void repopulateFood(MoveReporter reporter) {
+	private void repopulateFood(List<Position> foodP) {
 		while (curFood < TOTAL_FOOD) {
 			Random rand = new Random();
 			int fR = rand.nextInt(boardSize);
@@ -194,7 +204,7 @@ public class GameState {
 				fC = rand.nextInt(boardSize);
 			}
 			board[fR][fC] = FOOD;
-			reporter.foodAdd(new Position(fR, fC));
+			foodP.add(new Position(fR, fC));
 			curFood++;
 		}
 	}

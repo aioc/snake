@@ -87,17 +87,37 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 
 	@Override
 	public void generateState(VisualGameState state, int sWidth, int sHeight, Graphics2D g) {
-		if (!render) return;
-		
+		if (!render)
+			return;
+		BoxFactory f = new BoxFactory(sWidth, sHeight);
+		int boardN = state.boardSize;
+		for (int i = 0; i < boardN; i++) {
+			for (int j = 0; j < boardN; j++) {
+				int boxSize = boardBoxes[i][j].width;
+				if (state.board[i][j] == GameState.BLANK)
+					continue;
+				if (state.board[i][j] == GameState.FOOD) {
+					Box b = f.fromDimensions(boardBoxes[i][j].left + 3, boardBoxes[i][j].top + 3, boxSize - 3,
+							boxSize - 3);
+					g.setColor(Color.GREEN);
+					b.fill(g);
+				} else {
+					Box b = f.fromDimensions(boardBoxes[i][j].left + 1, boardBoxes[i][j].top + 1, boxSize - 1,
+							boxSize - 1);
+					g.setColor(state.colours[state.board[i][j] - 1]);
+					b.fill(g);
+				}
+			}
+		}
 	}
 
 	@Override
 	public void eventCreated(VisualGameEvent e) {
-		if (e instanceof SnakeHeadAdd || e instanceof SnakeTailRemove || e instanceof SnakeDied) {
-			e.totalFrames = 10;
+		if (e instanceof SnakeHeadAdd || e instanceof SnakeTailRemove || e instanceof SnakeDied || e instanceof SnakeFoodAdd) {
+			e.totalFrames = 3;
 		}
 		if (e instanceof SnakeAteFood) {
-			e.totalFrames = 30;
+			e.totalFrames = 6;
 		}
 		if (e instanceof SnakeWinnerEvent) {
 			e.totalFrames = 60;
@@ -106,14 +126,33 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 
 	@Override
 	public void animateEvents(VisualGameState state, List<VisualGameEvent> events, int sWidth, int sHeight, Graphics2D g) {
-		if (!render) return;
+		if (!render)
+			return;
+		// Make sure to set up events properly.
+		int best = -1;
+		for (VisualGameEvent e : events) {
+			if (e instanceof TurnEvent) {
+				TurnEvent te = (TurnEvent) e;
+				if (best == -1 || te.turn < best) {
+					best = te.turn;
+				}
+			}
+		}
+		for (VisualGameEvent e : events) {
+			if (e instanceof TurnEvent) {
+				TurnEvent te = (TurnEvent) e;
+				if (te.turn != best) {
+					te.curFrame = 0;
+				}
+			}
+		}
 	}
 
 	@Override
 	public void eventEnded(VisualGameEvent e, VisualGameState state) {
 		if (e instanceof SnakeHeadAdd) {
-			int player = ((SnakeTailRemove) e).player;
-			Position p = ((SnakeTailRemove) e).p;
+			int player = ((SnakeHeadAdd) e).player;
+			Position p = ((SnakeHeadAdd) e).p;
 			state.board[p.r][p.c] = player + 1;
 		}
 		if (e instanceof SnakeTailRemove) {
@@ -140,5 +179,5 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			state.winner = ((SnakeWinnerEvent) e).playerName;
 		}
 	}
-	
+
 }
