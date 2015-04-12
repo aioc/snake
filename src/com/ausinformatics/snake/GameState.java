@@ -138,7 +138,7 @@ public class GameState {
 				players[i].removeFromArray(board);
 				reporter.killPlayer(i);
 				allEvents.get(i).clear();
-				allEvents.get(i).add(new SnakeDied(i));
+				allEvents.get(i).add(new SnakeDied(i, addedPositions[i]));
 			}
 		}
 		repopulateFood();
