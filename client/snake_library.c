@@ -176,6 +176,7 @@ static int handleStart(char* args) {
 		internalError("Bad arguments on START: %s\n", args);
 	}
 	start_block_seen = 0;
+	return 0;
 }
 
 static int handleStartBlock(char* args) {
@@ -191,6 +192,7 @@ static int handleStartBlock(char* args) {
 		clientStartPositions(start_block_pid, start_block_size, start_blocks);
 		alarm(0);
 	}
+	return 0;
 }
 
 static int handleMoved(char* args) {
@@ -203,10 +205,15 @@ static int handleMoved(char* args) {
 		}
 		readTail = FALSE;
 	}
+	alarm(1);
 	clientAddHead(pid, h);
+	alarm(0);
 	if (readTail) {
+		alarm(1);
 		clientRemoveTail(pid, t);
+		alarm(0);
 	}
+	return 0;
 }
 
 static int handleDied(char* args) {
@@ -214,7 +221,10 @@ static int handleDied(char* args) {
 	if (sscanf(args, "%d ", &pid) != 1) {
 		internalError("Bad arguments on DIED: %s\n", args);
 	}
+	alarm(1);
 	clientPlayerDied(pid);
+	alarm(0);
+	return 0;
 }
 
 static int handleFood(char* args) {
@@ -222,7 +232,10 @@ static int handleFood(char* args) {
 	if (sscanf(args, "%d %d", &p.r, &p.c) != 2) {
 		internalError("Bad arguments on FOOD: %s\n", args);
 	}
+	alarm(1);
 	clientFoodAdded(p);
+	alarm(0);
+	return 0;
 }
 
 static int handleYourMove(char *args) {
