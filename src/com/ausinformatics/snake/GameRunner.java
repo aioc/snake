@@ -12,6 +12,7 @@ import com.ausinformatics.phais.core.server.DisconnectedException;
 import com.ausinformatics.phais.core.visualisation.EndGameEvent;
 import com.ausinformatics.phais.core.visualisation.EventBasedFrameVisualiser;
 import com.ausinformatics.phais.core.visualisation.GameHandler;
+import com.ausinformatics.snake.visualisation.SnakeWinnerEvent;
 import com.ausinformatics.snake.visualisation.VisualGameState;
 
 public class GameRunner implements GameHandler {
@@ -120,7 +121,7 @@ public class GameRunner implements GameHandler {
 		if (amoWinners > 1) {
 			name = "";
 		}
-		// vis.giveEvent(new TradeWinnerEvent(name));
+		vis.giveEvent(new SnakeWinnerEvent(name));
 		vis.giveEvent(new EndGameEvent());
 		int round = 0;
 		while (!vis.finishedVisualising() && vis.isVisualising() && round < 100) {

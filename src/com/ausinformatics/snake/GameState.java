@@ -1,8 +1,15 @@
 package com.ausinformatics.snake;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import com.ausinformatics.phais.core.visualisation.EventBasedFrameVisualiser;
+import com.ausinformatics.phais.core.visualisation.VisualGameEvent;
+import com.ausinformatics.snake.visualisation.SnakeAteFood;
+import com.ausinformatics.snake.visualisation.SnakeDied;
+import com.ausinformatics.snake.visualisation.SnakeHeadAdd;
+import com.ausinformatics.snake.visualisation.SnakeTailRemove;
 import com.ausinformatics.snake.visualisation.VisualGameState;
 
 public class GameState {
@@ -68,7 +75,7 @@ public class GameState {
 	public void setPlayerAction(Action a, int id) {
 		actions[id] = a;
 	}
-	
+
 	public void killPlayer(int id) {
 		players[id].kill();
 	}
@@ -77,21 +84,27 @@ public class GameState {
 		Position[] addedPositions = new Position[numPlayers];
 		boolean[] ateFood = new boolean[numPlayers];
 		boolean[] died = new boolean[numPlayers];
+		List<List<VisualGameEvent>> allEvents = new ArrayList<>();
 		// Idea, go through all players, move their heads.
 		for (int i = 0; i < numPlayers; i++) {
+			List<VisualGameEvent> events = new ArrayList<>();
+			allEvents.add(events);
 			if (!players[i].isAlive())
 				continue;
 			Position head = players[i].addHead(actions[i].dir);
 			addedPositions[i] = head;
 			reporter.setHead(i, head);
+			events.add(new SnakeHeadAdd(i, head));
 			if (validP(head) && board[head.r][head.c] == FOOD) {
 				curFood--;
 				board[head.r][head.c] = BLANK;
 				ateFood[i] = true;
+				events.add(new SnakeAteFood(i));
 			} else {
 				Position tail = players[i].removeTail();
 				board[tail.r][tail.c] = BLANK;
 				reporter.setTail(i, tail);
+				events.add(new SnakeTailRemove(i, tail));
 			}
 		}
 		// Now go through checking for collisions.
@@ -124,10 +137,17 @@ public class GameState {
 				players[i].kill();
 				players[i].removeFromArray(board);
 				reporter.killPlayer(i);
+				allEvents.get(i).clear();
+				allEvents.get(i).add(new SnakeDied(i));
 			}
 		}
 		repopulateFood();
 		tick++;
+		List<VisualGameEvent> finalEvents = new ArrayList<>();
+		for (List<VisualGameEvent> l : allEvents) {
+			finalEvents.addAll(l);
+		}
+		vis.giveEvents(finalEvents);
 	}
 
 	public boolean gameOver() {
@@ -145,7 +165,7 @@ public class GameState {
 		}
 		return false;
 	}
-	
+
 	public int getLength(int player) {
 		return players[player].getLength();
 	}
