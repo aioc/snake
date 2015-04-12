@@ -25,4 +25,8 @@ public class Box {
 		g.fillRect(left, top, width, height);
 	}
 	
+	public String toString() {
+		return "(" + left + " " + top + " " + right + " " + bottom + ")[" + width + " " + height + "]";
+	}
+	
 }

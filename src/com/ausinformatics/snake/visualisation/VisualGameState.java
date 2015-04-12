@@ -14,6 +14,7 @@ public class VisualGameState {
 
 	public int boardSize;
 	public int numPlayers;
+	public int curTurn;
 	public String[] names;
 	public Color[] colours;
 	public int[] foodEaten;

@@ -16,16 +16,16 @@ public class GamePerson {
 	// go horizontal first.
 	public GamePerson(Position head, Position tail) {
 		blocks = new ArrayDeque<>();
-		Position cur = tail.clone();
+		Position cur = head.clone();
 		blocks.push(cur);
-		while (!cur.equals(head)) {
-			if (cur.c < head.c) {
+		while (!cur.equals(tail)) {
+			if (cur.c < tail.c) {
 				cur = cur.move(Position.RIGHT);
-			} else if (cur.c > head.c) {
+			} else if (cur.c > tail.c) {
 				cur = cur.move(Position.LEFT);
-			} else if (cur.r < head.r) {
+			} else if (cur.r < tail.r) {
 				cur = cur.move(Position.DOWN);
-			} else if (cur.r > head.r) {
+			} else if (cur.r > tail.r) {
 				cur = cur.move(Position.UP);
 			}
 			blocks.push(cur);
@@ -34,21 +34,21 @@ public class GamePerson {
 	}
 
 	public Position getHead() {
-		return blocks.getLast();
+		return blocks.getFirst();
 	}
 	
 	public Position getTail() {
-		return blocks.getFirst();
+		return blocks.getLast();
 	}
 	
 	public Position addHead(int dir) {
 		Position p = getHead().move(dir);
-		blocks.addLast(p);
+		blocks.addFirst(p);
 		return p;
 	}
 	
 	public Position removeTail() {
-		return blocks.pop();
+		return blocks.removeLast();
 	}
 	
 	public int getLength() {

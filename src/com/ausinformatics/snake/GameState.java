@@ -14,6 +14,7 @@ import com.ausinformatics.snake.visualisation.SnakeDied;
 import com.ausinformatics.snake.visualisation.SnakeFoodAdd;
 import com.ausinformatics.snake.visualisation.SnakeHeadAdd;
 import com.ausinformatics.snake.visualisation.SnakeTailRemove;
+import com.ausinformatics.snake.visualisation.SnakeTurnEnd;
 import com.ausinformatics.snake.visualisation.VisualGameState;
 
 public class GameState {
@@ -171,6 +172,7 @@ public class GameState {
 			reporter.foodAdd(p);
 			vis.giveEvent(new SnakeFoodAdd(tick, p));
 		}
+		vis.giveEvent(new SnakeTurnEnd(tick));
 		tick++;
 		List<VisualGameEvent> finalEvents = new ArrayList<>();
 		for (List<VisualGameEvent> l : allEvents) {

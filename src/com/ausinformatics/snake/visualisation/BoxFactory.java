@@ -19,10 +19,10 @@ public class BoxFactory {
 	}
 	
 	public Box fromMixedWidth(int l, int t, int width, int b) {
-		return new Box(t, l, l + width, height - b);
+		return new Box(t, l, l + width, b);
 	}
 	
 	public Box fromMixedHeight(int l, int t, int r, int height) {
-		return new Box(t, l, width - r, t + height);
+		return new Box(t, l, r, t + height);
 	}
 }
