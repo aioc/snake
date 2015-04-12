@@ -64,14 +64,17 @@ public class GameState {
 
 	public void setUpForVisualisation(EventBasedFrameVisualiser<VisualGameState> vis) {
 		this.vis = vis;
+		VisualGameState state = vis.getCurState();
+		state.boardSize = boardSize;
+		state.numPlayers = numPlayers;
 		for (int i = 0; i < boardSize; i++) {
 			for (int j = 0; j < boardSize; j++) {
-				vis.getCurState().board[i][j] = board[i][j];
+				state.board[i][j] = board[i][j];
 			}
 		}
 		for (int i = 0; i < numPlayers; i++) {
-			vis.getCurState().heads[i] = players[i].getHead();
-			vis.getCurState().tails[i] = players[i].getTail();
+			state.heads[i] = players[i].getHead();
+			state.tails[i] = players[i].getTail();
 		}
 	}
 	
