@@ -39,11 +39,12 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		// Board takes at most 2/3rds of the width.
 		int boardWidth = 2 * (width - LARGE_BORDER) / 3;
 		int boardSize = Math.min(height, boardWidth);
-		if (boardSize < 5 * state.boardSize) {
+		int boardN = state.boardSize + 2;
+		if (boardSize < 5 * boardN) {
 			return;
 		}
 		// Round down to the nearest multiple of state.boardSize;
-		boardSize -= (boardSize % state.boardSize);
+		boardSize -= (boardSize % boardN);
 		boardBox = f.fromDimensions(LARGE_BORDER, LARGE_BORDER, boardSize, boardSize);
 		// Take up a lot of space with the stats.
 		statsBox = f.fromPoints(boardBox.right + LARGE_BORDER, LARGE_BORDER, LARGE_BORDER, LARGE_BORDER);
@@ -53,7 +54,6 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		}
 		// We *should* have enough space, so lets define all the rest of the
 		// boxes.
-		int boardN = state.boardSize;
 		boardBoxes = new Box[boardN][boardN];
 		int squareSize = boardBox.height / boardN;
 		// We either have a 1px border, or a 2px border.
@@ -79,9 +79,13 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		render = true;
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, sWidth, sHeight);
-		g.setColor(Color.WHITE);
 		for (int i = 0; i < boardN; i++) {
 			for (int j = 0; j < boardN; j++) {
+				if (i == 0 || j == 0 || i == boardN - 1 || j == boardN - 1) {
+					g.setColor(Color.BLACK);
+				} else {
+					g.setColor(Color.WHITE);
+				}
 				boardBoxes[i][j].fill(g);
 			}
 		}
@@ -100,8 +104,8 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		int boxSize = boardBoxes[0][0].width;
 		g.setColor(Color.GREEN);
 		for (Position p : state.food) {
-			Box b = f.fromDimensions(boardBoxes[p.r][p.c].left + 3, boardBoxes[p.r][p.c].top + 3, boxSize - 3,
-					boxSize - 3);
+			Box b = f.fromDimensions(boardBoxes[p.r + 1][p.c + 1].left + 3, boardBoxes[p.r + 1][p.c + 1].top + 3,
+					boxSize - 3, boxSize - 3);
 			b.fill(g);
 		}
 		for (int i = 0; i < state.numPlayers; i++) {
@@ -183,6 +187,8 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 				}
 				g.setColor(c);
 				drawSnake(f, g, state.blocks.get(i));
+				Position curHead = state.blocks.get(i).getFirst();
+				tweenMovement(f, dead[i].p, curHead, 0, g);
 			}
 			Position tail = state.blocks.get(i).removeLast();
 			Position second = state.blocks.get(i).getLast();
@@ -271,11 +277,11 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			count++;
 			Box b = null;
 			if (pre == null) {
-				b = f.fromDimensions(boardBoxes[p.r][p.c].left + borderIn, boardBoxes[p.r][p.c].top + borderIn,
-						boxSize / 2, boxSize / 2);
+				b = f.fromDimensions(boardBoxes[p.r + 1][p.c + 1].left + borderIn, boardBoxes[p.r + 1][p.c + 1].top
+						+ borderIn, boxSize / 2, boxSize / 2);
 			} else {
-				Box b1 = boardBoxes[p.r][p.c];
-				Box b2 = boardBoxes[pre.r][pre.c];
+				Box b1 = boardBoxes[p.r + 1][p.c + 1];
+				Box b2 = boardBoxes[pre.r + 1][pre.c + 1];
 				Box b3 = f.fromPoints(Math.min(b1.left, b2.left), Math.min(b1.top, b2.top),
 						Math.max(b1.right, b2.right), Math.max(b1.bottom, b2.bottom));
 				b = f.fromPoints(b3.left + borderIn, b3.top + borderIn, b3.right + borderIn, b3.bottom + borderIn);
@@ -288,8 +294,8 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 	private void tweenMovement(BoxFactory f, Position from, Position to, int amo, Graphics2D g) {
 		int boxSize = boardBoxes[0][0].width;
 		int borderIn = boxSize / 4;
-		Box b1 = boardBoxes[from.r][from.c];
-		Box b2 = boardBoxes[to.r][to.c];
+		Box b1 = boardBoxes[from.r + 1][from.c + 1];
+		Box b2 = boardBoxes[to.r + 1][to.c + 1];
 		Box b3 = f.fromPoints(Math.min(b1.left, b2.left), Math.min(b1.top, b2.top), Math.max(b1.right, b2.right),
 				Math.max(b1.bottom, b2.bottom));
 		Box b = f.fromPoints(b3.left + borderIn, b3.top + borderIn, b3.right + borderIn, b3.bottom + borderIn);
