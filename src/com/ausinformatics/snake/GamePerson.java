@@ -18,7 +18,7 @@ public class GamePerson {
 		blocks = new ArrayDeque<>();
 		Position cur = tail.clone();
 		blocks.push(cur);
-		while (cur.equals(head)) {
+		while (!cur.equals(head)) {
 			if (cur.c < head.c) {
 				cur = cur.move(Position.RIGHT);
 			} else if (cur.c > head.c) {
@@ -43,7 +43,7 @@ public class GamePerson {
 	
 	public Position addHead(int dir) {
 		Position p = getHead().move(dir);
-		blocks.push(p);
+		blocks.addLast(p);
 		return p;
 	}
 	
@@ -61,6 +61,12 @@ public class GamePerson {
 		}
 	}
 	
+	public void cloneToDeque(Deque<Position> d) {
+		for (Position p : blocks) {
+			d.addLast(p);
+		}
+	}
+	
 	public void sendToPlayer(ClientConnection c) {
 		for (Position p : blocks) {
 			c.sendInfo("STARTBLOCK " + p.r + " " + p.c);
@@ -69,7 +75,9 @@ public class GamePerson {
 	
 	public void removeFromArray(int arr[][]) {
 		for (Position p : blocks) {
-			arr[p.r][p.c] = 0;
+			if (p.r >= 0 && p.c >= 0 && p.r < arr.length && p.c < arr[0].length) {
+				arr[p.r][p.c] = 0;
+			}
 		}
 	}
 	

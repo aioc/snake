@@ -1,11 +1,14 @@
 package com.ausinformatics.snake.visualisation;
 
-import com.ausinformatics.phais.core.visualisation.VisualGameEvent;
+import com.ausinformatics.snake.Position;
 
-public class SnakeAteFood extends VisualGameEvent {
+public class SnakeAteFood extends TurnEvent {
 	public int player;
-	
-	public SnakeAteFood(int player) {
+	public Position p;
+
+	public SnakeAteFood(int turn, int player, Position p) {
+		super(turn);
 		this.player = player;
+		this.p = p;
 	}
 }

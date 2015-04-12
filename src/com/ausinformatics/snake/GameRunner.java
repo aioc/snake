@@ -120,7 +120,7 @@ public class GameRunner implements GameHandler {
 		if (amoWinners > 1) {
 			name = "";
 		}
-		vis.giveEvent(new SnakeWinnerEvent(name));
+		vis.giveEvent(new SnakeWinnerEvent(100000, name));
 		vis.giveEvent(new EndGameEvent());
 		int round = 0;
 		while (!vis.finishedVisualising() && vis.isVisualising() && round < 100) {

@@ -1,13 +1,13 @@
 package com.ausinformatics.snake.visualisation;
 
-import com.ausinformatics.phais.core.visualisation.VisualGameEvent;
 import com.ausinformatics.snake.Position;
 
-public class SnakeTailRemove extends VisualGameEvent {
+public class SnakeTailRemove extends TurnEvent {
 	public int player;
 	public Position p;
-	
-	public SnakeTailRemove(int player, Position p) {
+
+	public SnakeTailRemove(int turn, int player, Position p) {
+		super(turn);
 		this.player = player;
 		this.p = p;
 	}
