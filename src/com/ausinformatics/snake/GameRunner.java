@@ -56,9 +56,8 @@ public class GameRunner implements GameHandler {
 	@Override
 	public void begin() {
 		for (int i = 0; i < players.size(); i++) {
-			// Send initial stuff.
+			state.sendInitial(players.get(i).getConnection());
 		}
-
 		while (results.size() < players.size() - 1 && !state.gameOver()) {
 			for (int i = 0; i < players.size(); i++) {
 				PersistentPlayer p = players.get(i);
@@ -87,7 +86,7 @@ public class GameRunner implements GameHandler {
 			MoveReporter reporter = new MoveReporter(players.size());
 			state.implementMoves(reporter);
 			for (int i = 0; i < players.size(); i++) {
-				reporter.sendToPlayer(players.get(i));
+				reporter.sendToPlayer(players.get(i).getConnection());
 			}
 			for (int i = 0; i < players.size(); i++) {
 				if (reporter.died(i)) {

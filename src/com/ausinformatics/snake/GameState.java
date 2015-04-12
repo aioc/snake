@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.ausinformatics.phais.core.server.ClientConnection;
 import com.ausinformatics.phais.core.visualisation.EventBasedFrameVisualiser;
 import com.ausinformatics.phais.core.visualisation.VisualGameEvent;
 import com.ausinformatics.snake.visualisation.SnakeAteFood;
@@ -28,6 +29,7 @@ public class GameState {
 	private int board[][];
 	private int curFood;
 	private int tick;
+	private MoveReporter initialReporter;
 
 	public GameState(int numPlayers, int boardSize) {
 		this.numPlayers = numPlayers;
@@ -56,7 +58,8 @@ public class GameState {
 		}
 		tick = 0;
 		curFood = 0;
-		repopulateFood();
+		initialReporter = new MoveReporter(numPlayers);
+		repopulateFood(initialReporter);
 	}
 
 	public void setUpForVisualisation(EventBasedFrameVisualiser<VisualGameState> vis) {
@@ -69,6 +72,14 @@ public class GameState {
 		for (int i = 0; i < numPlayers; i++) {
 			vis.getCurState().heads[i] = players[i].getHead();
 			vis.getCurState().tails[i] = players[i].getTail();
+		}
+	}
+	
+	public void sendInitial(ClientConnection c) {
+		for (int i = 0; i < numPlayers; i++) {
+			c.sendInfo("START " + i + " " + INITIAL_SIZE);
+			players[i].sendToPlayer(c);
+			initialReporter.sendToPlayer(c);
 		}
 	}
 
@@ -141,7 +152,7 @@ public class GameState {
 				allEvents.get(i).add(new SnakeDied(i, addedPositions[i]));
 			}
 		}
-		repopulateFood();
+		repopulateFood(reporter);
 		tick++;
 		List<VisualGameEvent> finalEvents = new ArrayList<>();
 		for (List<VisualGameEvent> l : allEvents) {
@@ -170,7 +181,7 @@ public class GameState {
 		return players[player].getLength();
 	}
 
-	private void repopulateFood() {
+	private void repopulateFood(MoveReporter reporter) {
 		while (curFood < TOTAL_FOOD) {
 			Random rand = new Random();
 			int fR = rand.nextInt(boardSize);
@@ -180,6 +191,7 @@ public class GameState {
 				fC = rand.nextInt(boardSize);
 			}
 			board[fR][fC] = FOOD;
+			reporter.foodAdd(new Position(fR, fC));
 			curFood++;
 		}
 	}

@@ -89,8 +89,7 @@ static int colour_r, colour_g, colour_b;
 static char name[17];
 
 static int move_made;
-static int no_move_wanted;
-static int move_r, move_c, move_d;
+static int move_d;
 
 void setName(const char *n) {
 	ensureState(STATE_REGISTER, "setName");
@@ -112,9 +111,11 @@ void setColour(int r, int g, int b) {
 	colour_b = clamp(0, b, 255);
 }
 
-/**
- * Add some functions handling player moves here.
- */
+void makeMove(int d) {
+	ensureState(STATE_MAKEMOVE, "makeMove");
+	move_d = d;
+	move_made = TRUE;
+}
 
 
 ///////////////////////////////////////////////
@@ -150,20 +151,96 @@ static int handleError(char *args) {
 }
 
 static int handleNewGame(char *args) {
-
+	int num_players, board_size;
+	int pid;
+	// Big sscanf
+	if (sscanf(args, "%d %d %d", &num_players, &board_size, &pid) != 3) {
+		internalError("Bad arguments on NEWGAME: %s\n", args);
+	}
+	alarm(1);
+	clientInit(num_players, board_size, pid);
+	alarm(0);
+	if (sendPrintf("READY\n")) {
+		return -1;
+	}
 	return 0;
 }
 
-static int handleMoved(char* args) {
+static int start_block_size;
+static int start_block_pid;
+static int start_block_seen;
+static struct point start_blocks[MAX_BOARD_SIZE * MAX_BOARD_SIZE];
 
+static int handleStart(char* args) {
+	if (sscanf(args, "%d %d", &start_block_pid, &start_block_size) != 2) {
+		internalError("Bad arguments on START: %s\n", args);
+	}
+	start_block_seen = 0;
+}
+
+static int handleStartBlock(char* args) {
+	int r, c;
+	if (sscanf(args, "%d %d", &r, &c) != 2) {
+		internalError("Bad arguments on STARTBLOCK: %s\n", args);
+	}
+	start_blocks[start_block_seen].r = r;
+	start_blocks[start_block_seen].c = c;
+	start_block_seen++;
+	if (start_block_seen == start_block_size) {
+		alarm(1);
+		clientStartPositions(start_block_pid, start_block_size, start_blocks);
+		alarm(0);
+	}
+}
+
+static int handleMoved(char* args) {
+	int pid;
+	struct point h, t;
+	int readTail = TRUE;
+	if (sscanf(args, "%d %d %d %d %d", &pid, &h.r, &h.c, &t.r, &t.c) != 5) {
+		if (sscanf(args, "%d %d %d", &pid, &h.r, &h.c) != 3) {
+			internalError("Bad arguments on MOVED: %s\n", args);
+		}
+		readTail = FALSE;
+	}
+	clientAddHead(pid, h);
+	if (readTail) {
+		clientRemoveTail(pid, t);
+	}
 }
 
 static int handleDied(char* args) {
-
+	int pid;
+	if (sscanf(args, "%d ", &pid) != 1) {
+		internalError("Bad arguments on DIED: %s\n", args);
+	}
+	clientPlayerDied(pid);
 }
 
 static int handleFood(char* args) {
+	struct point p;
+	if (sscanf(args, "%d %d", &p.r, &p.c) != 2) {
+		internalError("Bad arguments on FOOD: %s\n", args);
+	}
+	clientFoodAdded(p);
+}
 
+static int handleYourMove(char *args) {
+	move_made = FALSE;
+	state = STATE_MAKEMOVE;
+	alarm(1);
+	clientDoTurn();
+	alarm(0);
+	state = STATE_INTERNAL;
+
+	if (!move_made) {
+		fprintf(stderr, "No	move was made\n");
+		raise(SIGUSR1);
+	}
+	if (sendPrintf("MOVE %d\n", move_d)) {
+		return -1;
+	}
+	return 0;
 }
 
 static int handleGameOver(char *args) {
@@ -191,10 +268,12 @@ static struct command commands[] = {
 	{"BADPROT", handleError},
 	{"NEWGAME", handleNewGame},
 	// Snake server commands
+	{"START", handleStart},
+	{"STARTBLOCK", handleStartBlock},
 	{"MOVED", handleMoved},
 	{"DIED", handleDied},
 	{"FOOD", handleFood},
-
+	{"YOURMOVE", handleYourMove},
 	{"GAMEOVER", handleGameOver},
 };
 

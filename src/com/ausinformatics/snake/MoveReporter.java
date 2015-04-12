@@ -3,7 +3,6 @@ package com.ausinformatics.snake;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ausinformatics.phais.core.interfaces.PersistentPlayer;
 import com.ausinformatics.phais.core.server.ClientConnection;
 
 public class MoveReporter {
@@ -29,15 +28,14 @@ public class MoveReporter {
 	}
 
 	public void killPlayer(int player) {
-		updateMoves[player] = "DIED" + player;
+		updateMoves[player] = "DIED " + player;
 	}
 
 	public void foodAdd(Position p) {
 		foodAdds.add("FOOD " + p.r + " " + p.c);
 	}
 
-	public void sendToPlayer(PersistentPlayer p) {
-		ClientConnection c = p.getConnection();
+	public void sendToPlayer(ClientConnection c) {
 		for (int i = 0; i < numPlayers; i++) {
 			if (updateMoves[i] != null) {
 				c.sendInfo(updateMoves[i]);

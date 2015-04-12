@@ -3,6 +3,8 @@ package com.ausinformatics.snake;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import com.ausinformatics.phais.core.server.ClientConnection;
+
 public class GamePerson {
 
 	// Front of the deque is the tail. So we push the heads on, pop the tails
@@ -56,6 +58,12 @@ public class GamePerson {
 	public void markArray(int arr[][], int num) {
 		for (Position p : blocks) {
 			arr[p.r][p.c] = num;
+		}
+	}
+	
+	public void sendToPlayer(ClientConnection c) {
+		for (Position p : blocks) {
+			c.sendInfo("STARTBLOCK " + p.r + " " + p.c);
 		}
 	}
 	
