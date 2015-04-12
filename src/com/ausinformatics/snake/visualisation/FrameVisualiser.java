@@ -1,5 +1,6 @@
 package com.ausinformatics.snake.visualisation;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.List;
 
@@ -10,15 +11,83 @@ import com.ausinformatics.snake.Position;
 
 public class FrameVisualiser implements FrameVisualisationHandler<VisualGameState> {
 
+	private static final int LARGE_BORDER = 10;
+	private static final int SMALL_BORDER = 3;
+	private Box boardBox;
+	private Box statsBox;
+	private Box[][] boardBoxes;
+	private Box titleBox;
+	private Box[] playerBoxes;
+	// We keep track of whether to render or not, which will occur if the screen
+	// is too small.
+	private boolean render;
+
 	@Override
 	public void generateBackground(VisualGameState state, int sWidth, int sHeight, Graphics2D g) {
-		// TODO Auto-generated method stub
-		
+		render = false;
+		BoxFactory f = new BoxFactory(sWidth, sHeight);
+		int width = sWidth - 2 * LARGE_BORDER;
+		int height = sHeight - 2 * LARGE_BORDER;
+		// Divide into two parts: The board, and the stats.
+		// Board takes at most 2/3rds of the width.
+		int boardWidth = 2 * (width - LARGE_BORDER) / 3;
+		int boardSize = Math.min(height, boardWidth);
+		if (boardSize < 5 * state.boardSize) {
+			return;
+		}
+		// Round down to the nearest multiple of state.boardSize;
+		boardSize -= (boardSize % state.boardSize);
+		boardBox = f.fromDimensions(LARGE_BORDER, LARGE_BORDER, boardSize, boardSize);
+		// Take up a lot of space with the stats.
+		statsBox = f.fromPoints(boardBox.left + LARGE_BORDER, LARGE_BORDER, LARGE_BORDER, LARGE_BORDER);
+		// Adjust these based of whether it is valid or not.
+		if (statsBox.width < 70 || statsBox.height < state.numPlayers * 10 + 20 || statsBox.height < 100) {
+			return;
+		}
+		// We *should* have enough space, so lets define all the rest of the
+		// boxes.
+		int boardN = state.boardSize;
+		boardBoxes = new Box[boardN][boardN];
+		int squareSize = boardBox.height / boardN;
+		// We either have a 1px border, or a 2px border.
+		int border = squareSize > 10 ? 2 : 1;
+		for (int i = 0; i < boardN; i++) {
+			for (int j = 0; j < boardN; j++) {
+				boardBoxes[i][j] = f.fromDimensions(boardBox.left + j * squareSize, boardBox.top + i * squareSize,
+						squareSize - border, squareSize - border);
+			}
+		}
+		titleBox = f.fromMixedHeight(statsBox.left + SMALL_BORDER, statsBox.top + SMALL_BORDER, statsBox.right
+				- SMALL_BORDER, statsBox.height / 10);
+		playerBoxes = new Box[state.numPlayers];
+		int playerHeight = (statsBox.height - titleBox.height - LARGE_BORDER) / state.numPlayers;
+		if (playerHeight < 10) {
+			return;
+		}
+		for (int i = 0; i < state.numPlayers; i++) {
+			playerBoxes[i] = f.fromMixedHeight(statsBox.left + SMALL_BORDER, titleBox.bottom + LARGE_BORDER + i
+					* playerHeight, statsBox.right - SMALL_BORDER, playerHeight - SMALL_BORDER);
+		}
+		// Everything is defined. We start renderering.
+		render = true;
+		g.setColor(Color.BLACK);
+		g.fillRect(0, 0, sWidth, sHeight);
+		g.setColor(Color.WHITE);
+		for (int i = 0; i < boardN; i++) {
+			for (int j = 0; j < boardN; j++) {
+				boardBoxes[i][j].fill(g);
+			}
+		}
+		g.setColor(Color.LIGHT_GRAY);
+		titleBox.fill(g);
+		for (int i = 0; i < state.numPlayers; i++) {
+			playerBoxes[i].fill(g);
+		}
 	}
 
 	@Override
 	public void generateState(VisualGameState state, int sWidth, int sHeight, Graphics2D g) {
-		// TODO Auto-generated method stub
+		if (!render) return;
 		
 	}
 
@@ -37,8 +106,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 
 	@Override
 	public void animateEvents(VisualGameState state, List<VisualGameEvent> events, int sWidth, int sHeight, Graphics2D g) {
-		// TODO Auto-generated method stub
-		
+		if (!render) return;
 	}
 
 	@Override
@@ -48,7 +116,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			Position p = ((SnakeTailRemove) e).p;
 			state.board[p.r][p.c] = player + 1;
 		}
-		if (e instanceof SnakeTailRemove ) {
+		if (e instanceof SnakeTailRemove) {
 			int player = ((SnakeTailRemove) e).player;
 			Position p = ((SnakeTailRemove) e).p;
 			if (state.board[p.r][p.c] == player + 1) {
@@ -72,5 +140,5 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			state.winner = ((SnakeWinnerEvent) e).playerName;
 		}
 	}
-
+	
 }
