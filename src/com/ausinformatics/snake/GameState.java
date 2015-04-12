@@ -1,6 +1,8 @@
 package com.ausinformatics.snake;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
@@ -72,14 +74,17 @@ public class GameState {
 		VisualGameState state = vis.getCurState();
 		state.boardSize = boardSize;
 		state.numPlayers = numPlayers;
+		for (int i = 0; i < numPlayers; i++) {
+			Deque<Position> d = new ArrayDeque<>();
+			players[i].cloneToDeque(d);
+			state.blocks.add(d);
+		}
 		for (int i = 0; i < boardSize; i++) {
 			for (int j = 0; j < boardSize; j++) {
-				state.board[i][j] = board[i][j];
+				if (board[i][j] == FOOD) {
+					state.food.add(new Position(i, j));
+				}
 			}
-		}
-		for (int i = 0; i < numPlayers; i++) {
-			state.heads[i] = players[i].getHead();
-			state.tails[i] = players[i].getTail();
 		}
 	}
 	
@@ -118,7 +123,7 @@ public class GameState {
 				curFood--;
 				board[head.r][head.c] = BLANK;
 				ateFood[i] = true;
-				events.add(new SnakeAteFood(tick, i));
+				events.add(new SnakeAteFood(tick, i, head));
 			} else {
 				Position tail = players[i].removeTail();
 				board[tail.r][tail.c] = BLANK;

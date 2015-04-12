@@ -43,7 +43,7 @@ public class GamePerson {
 	
 	public Position addHead(int dir) {
 		Position p = getHead().move(dir);
-		blocks.add(p);
+		blocks.addLast(p);
 		return p;
 	}
 	
@@ -58,6 +58,12 @@ public class GamePerson {
 	public void markArray(int arr[][], int num) {
 		for (Position p : blocks) {
 			arr[p.r][p.c] = num;
+		}
+	}
+	
+	public void cloneToDeque(Deque<Position> d) {
+		for (Position p : blocks) {
+			d.addLast(p);
 		}
 	}
 	

@@ -1,6 +1,8 @@
 package com.ausinformatics.snake.visualisation;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Random;
 
@@ -15,18 +17,18 @@ public class VisualGameState {
 	public String[] names;
 	public Color[] colours;
 	public int[] foodEaten;
-	public int[][] board;
-	public Position[] heads;
-	public Position[] tails;
+	public List<Deque<Position>> blocks;
+	public boolean[] isDead;
+	public List<Position> food;
 	public String winner;
 
 	public VisualGameState(int boardSize, int numPlayers, List<PersistentPlayer> players) {
 		names = new String[numPlayers];
 		colours = new Color[numPlayers];
 		foodEaten = new int[numPlayers];
-		board = new int[boardSize][boardSize];
-		heads = new Position[numPlayers];
-		tails = new Position[numPlayers];
+		isDead = new boolean[numPlayers];
+		blocks = new ArrayList<Deque<Position>>();
+		food = new ArrayList<>();
 		for (int i = 0; i < numPlayers; i++) {
 			names[i] = players.get(i).getName();
 			colours[i] = new Color(((Player) players.get(i)).getColour());
