@@ -40,7 +40,7 @@ public class GameFactory implements GameBuilder {
 		GameRunner gr = new GameRunner(players, boardSize);
 		FrameVisualiser fv = new FrameVisualiser();
 		EventBasedFrameVisualiser<VisualGameState> vis = new EventBasedFrameVisualiser<VisualGameState>(gr, fv,
-				new VisualGameState());
+				new VisualGameState(boardSize, players.size(), players));
 
 		// Ok, we need to get the visualGameState set up, give the EBFV to the
 		// gameState to report to, and to the gameRunner to know when to finish

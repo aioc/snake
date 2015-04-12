@@ -10,8 +10,8 @@ public class GameState {
 	private static int INITIAL_SIZE = 5;
 	private static int TOTAL_FOOD = 3;
 
-	private static int BLANK = 0;
-	private static int FOOD = -1;
+	public static int BLANK = 0;
+	public static int FOOD = -1;
 
 	private EventBasedFrameVisualiser<VisualGameState> vis;
 	private int numPlayers;
@@ -54,6 +54,15 @@ public class GameState {
 
 	public void setUpForVisualisation(EventBasedFrameVisualiser<VisualGameState> vis) {
 		this.vis = vis;
+		for (int i = 0; i < boardSize; i++) {
+			for (int j = 0; j < boardSize; j++) {
+				vis.getCurState().board[i][j] = board[i][j];
+			}
+		}
+		for (int i = 0; i < numPlayers; i++) {
+			vis.getCurState().heads[i] = players[i].getHead();
+			vis.getCurState().tails[i] = players[i].getTail();
+		}
 	}
 
 	public void setPlayerAction(Action a, int id) {
