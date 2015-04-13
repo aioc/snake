@@ -3,9 +3,11 @@ package com.ausinformatics.snake.visualisation;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -24,7 +26,9 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 	private Box statsBox;
 	private Box[][] boardBoxes;
 	private Box titleBox;
-	private Box[] playerBoxes;
+	private Box[] playerNameBoxes;
+	private Box[] statBoxes;
+	private Font rootFont;
 	// We keep track of whether to render or not, which will occur if the screen
 	// is too small.
 	private boolean render;
@@ -66,14 +70,17 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		}
 		titleBox = f.fromMixedHeight(statsBox.left + SMALL_BORDER, statsBox.top + SMALL_BORDER, statsBox.right
 				- SMALL_BORDER, statsBox.height / 10);
-		playerBoxes = new Box[state.numPlayers];
-		int playerHeight = (statsBox.height - titleBox.height - LARGE_BORDER) / state.numPlayers;
+		playerNameBoxes = new Box[state.numPlayers];
+		statBoxes = new Box[state.numPlayers];
+		int playerHeight = (statsBox.height - titleBox.height) / state.numPlayers;
 		if (playerHeight < 10) {
 			return;
 		}
 		for (int i = 0; i < state.numPlayers; i++) {
-			playerBoxes[i] = f.fromMixedHeight(statsBox.left + SMALL_BORDER, titleBox.bottom + LARGE_BORDER + i
-					* playerHeight, statsBox.right - SMALL_BORDER, playerHeight - SMALL_BORDER);
+			Box b = f.fromMixedHeight(statsBox.left + SMALL_BORDER, titleBox.bottom + LARGE_BORDER + i
+					* playerHeight, statsBox.right - SMALL_BORDER, playerHeight - LARGE_BORDER);
+			playerNameBoxes[i] = f.fromDimensions(b.left, b.top, b.width, b.height / 4);
+			statBoxes[i] = f.fromMixedWidth(b.left, playerNameBoxes[i].bottom + LARGE_BORDER, b.width, b.bottom);
 		}
 		// Everything is defined. We start rendering.
 		render = true;
@@ -92,7 +99,13 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		g.setColor(Color.LIGHT_GRAY);
 		titleBox.fill(g);
 		for (int i = 0; i < state.numPlayers; i++) {
-			playerBoxes[i].fill(g);
+			playerNameBoxes[i].fill(g);
+			statBoxes[i].fill(g);
+		}
+		try {
+			rootFont = Font.createFont(Font.TRUETYPE_FONT, FrameVisualiser.class.getResourceAsStream("emulogic.ttf"));
+		} catch (FontFormatException | IOException e) {
+			rootFont = g.getFont();
 		}
 	}
 
@@ -117,6 +130,10 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		}
 		String text = "Snake : " + state.curTurn;
 		drawString(g, titleBox, text, Color.BLACK);
+		for (int i = 0; i < state.numPlayers; i++) {
+			drawString(g, playerNameBoxes[i], state.names[i], state.colours[i]);
+			drawString(g, statBoxes[i], "Length: " + state.blocks.get(i).size(), state.colours[i].darker());
+		}
 	}
 
 	@Override
@@ -239,12 +256,12 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 	}
 
 	private void drawString(Graphics2D g, Box b, String text, Color c) {
-		Font fo = getLargestFittingFont(g.getFont(), b, g, text, 180);
+		Font fo = getLargestFittingFont(rootFont, b, g, text, 180);
 		g.setStroke(new BasicStroke(1));
 		FontMetrics fm = g.getFontMetrics(fo);
 		Rectangle2D fR = fm.getStringBounds(text, g);
 		g.setFont(fo);
-		g.setColor(Color.BLACK);
+		g.setColor(c);
 		g.drawString(text, b.left + (b.width - (int) fR.getWidth()) / 2,
 				b.top + (b.height + (int) (0.5 * fR.getHeight())) / 2);
 	}
@@ -257,7 +274,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			f = f.deriveFont(Font.PLAIN, midSize);
 			FontMetrics fm = g.getFontMetrics(f);
 			Rectangle2D fR = fm.getStringBounds(s, g);
-			if (fR.getWidth() < b.width && fR.getHeight() < b.height) {
+			if (fR.getWidth() < b.width - 10 && fR.getHeight() < b.height) {
 				minSize = midSize + 1;
 			} else {
 				maxSize = midSize - 1;

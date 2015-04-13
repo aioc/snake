@@ -47,7 +47,7 @@ public class GameState {
 		Position p4 = new Position(0, boardSize - 1);
 		if (numPlayers == 2) {
 			players[0] = new GamePerson(p1.moveN(Position.DOWN, INITIAL_SIZE - 1), p1);
-			players[1] = new GamePerson(p3.moveN(Position.UP, INITIAL_SIZE - 1), p3);
+			players[1] = new GamePerson(p4.moveN(Position.DOWN, INITIAL_SIZE - 1), p4);
 		} else if (numPlayers == 4) {
 			players[0] = new GamePerson(p1.moveN(Position.DOWN, INITIAL_SIZE - 1), p1);
 			players[1] = new GamePerson(p2.moveN(Position.RIGHT, INITIAL_SIZE - 1), p2);

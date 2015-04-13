@@ -13,7 +13,7 @@ import com.ausinformatics.snake.visualisation.VisualGameState;
 
 public class GameFactory implements GameBuilder {
 
-	public int boardSize = 10;
+	public int boardSize = 16;
 
 	@Override
 	public GameInstance createGameInstance(List<PersistentPlayer> players) {
