@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import com.ausinformatics.phais.core.visualisation.EndGameEvent;
 import com.ausinformatics.phais.core.visualisation.FrameVisualisationHandler;
 import com.ausinformatics.phais.core.visualisation.VisualGameEvent;
 import com.ausinformatics.snake.Position;
@@ -28,6 +29,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 	private Box titleBox;
 	private Box[] playerNameBoxes;
 	private Box[] statBoxes;
+	private Box winnerScreen;
 	private Font rootFont;
 	// We keep track of whether to render or not, which will occur if the screen
 	// is too small.
@@ -82,6 +84,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			playerNameBoxes[i] = f.fromDimensions(b.left, b.top, b.width, b.height / 4);
 			statBoxes[i] = f.fromMixedWidth(b.left, playerNameBoxes[i].bottom + LARGE_BORDER, b.width, b.bottom);
 		}
+		winnerScreen = f.fromDimensions(sWidth / 4, sHeight / 4, sWidth / 2, sHeight / 2);
 		// Everything is defined. We start rendering.
 		render = true;
 		g.setColor(Color.BLACK);
@@ -143,9 +146,12 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			e.totalFrames = DIED_FRAMES;
 		}
 		if (e instanceof SnakeAteFood) {
-			e.totalFrames = 6;
+			e.totalFrames = TURN_FRAMES;
 		}
 		if (e instanceof SnakeWinnerEvent) {
+			e.totalFrames = TURN_FRAMES;
+		}
+		if (e instanceof EndGameEvent) {
 			e.totalFrames = 60;
 		}
 	}
@@ -190,6 +196,9 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			if (e instanceof SnakeDied) {
 				dead[((SnakeDied) e).player] = (SnakeDied) e;
 			}
+			if (e instanceof SnakeWinnerEvent) {
+				state.winner = ((SnakeWinnerEvent) e).playerName;
+			}
 		}
 
 		for (int i = 0; i < state.numPlayers; i++) {
@@ -215,6 +224,12 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			if (headEvents[i] != null) {
 				tweenMovement(f, headEvents[i].p, curHead, TURN_FRAMES - headEvents[i].curFrame, g);
 			}
+		}
+
+		if (state.winner != null) {
+			g.setColor(Color.BLACK);
+			winnerScreen.fill(g);
+			drawString(g, winnerScreen, state.winner, Color.WHITE);
 		}
 	}
 
@@ -274,7 +289,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			f = f.deriveFont(Font.PLAIN, midSize);
 			FontMetrics fm = g.getFontMetrics(f);
 			Rectangle2D fR = fm.getStringBounds(s, g);
-			if (fR.getWidth() < b.width - 10 && fR.getHeight() < b.height) {
+			if (fR.getWidth() < b.width - 20 && fR.getHeight() < b.height) {
 				minSize = midSize + 1;
 			} else {
 				maxSize = midSize - 1;

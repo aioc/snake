@@ -118,7 +118,9 @@ public class GameRunner implements GameHandler {
 			}
 		}
 		if (amoWinners > 1) {
-			name = "";
+			name = "It was a draw";
+		} else {
+			name = "The winner was " + name;
 		}
 		vis.giveEvent(new SnakeWinnerEvent(100000, name));
 		vis.giveEvent(new EndGameEvent());

@@ -29,6 +29,7 @@ public class MoveReporter {
 
 	public void killPlayer(int player) {
 		updateMoves[player] = "DIED " + player;
+		died[player] = true;
 	}
 
 	public void foodAdd(Position p) {
