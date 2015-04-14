@@ -79,8 +79,8 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			return;
 		}
 		for (int i = 0; i < state.numPlayers; i++) {
-			Box b = f.fromMixedHeight(statsBox.left + SMALL_BORDER, titleBox.bottom + LARGE_BORDER + i
-					* playerHeight, statsBox.right - SMALL_BORDER, playerHeight - LARGE_BORDER);
+			Box b = f.fromMixedHeight(statsBox.left + SMALL_BORDER, titleBox.bottom + LARGE_BORDER + i * playerHeight,
+					statsBox.right - SMALL_BORDER, playerHeight - LARGE_BORDER);
 			playerNameBoxes[i] = f.fromDimensions(b.left, b.top, b.width, b.height / 4);
 			statBoxes[i] = f.fromMixedWidth(b.left, playerNameBoxes[i].bottom + LARGE_BORDER, b.width, b.bottom);
 		}
@@ -120,9 +120,9 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 		int boxSize = boardBoxes[0][0].width;
 		g.setColor(Color.GREEN);
 		for (Position p : state.food) {
-			Box b = f.fromDimensions(boardBoxes[p.r + 1][p.c + 1].left + 3, boardBoxes[p.r + 1][p.c + 1].top + 3,
-					boxSize - 3, boxSize - 3);
-			b.fill(g);
+			int border = boxSize / 3;
+			g.fillOval(boardBoxes[p.r + 1][p.c + 1].left + border / 2, boardBoxes[p.r + 1][p.c + 1].top + border / 2,
+					boxSize - border, boxSize - border);
 		}
 		for (int i = 0; i < state.numPlayers; i++) {
 			if (state.isDead[i])

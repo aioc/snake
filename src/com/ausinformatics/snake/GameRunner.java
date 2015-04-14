@@ -24,11 +24,11 @@ public class GameRunner implements GameHandler {
 
 	private int[] finalRanks;
 
-	public GameRunner(List<PersistentPlayer> players, int boardSize) {
+	public GameRunner(List<PersistentPlayer> players, int boardSize, int maxTurns, int maxFood) {
 		this.players = players;
 		results = new HashMap<PersistentPlayer, Integer>();
 		finalRanks = new int[players.size()];
-		state = new GameState(players.size(), boardSize);
+		state = new GameState(players.size(), boardSize, maxTurns, maxFood);
 	}
 
 	public void setEventVisualiser(EventBasedFrameVisualiser<VisualGameState> vis) {

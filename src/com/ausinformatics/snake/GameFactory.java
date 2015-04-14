@@ -14,6 +14,8 @@ import com.ausinformatics.snake.visualisation.VisualGameState;
 public class GameFactory implements GameBuilder {
 
 	public int boardSize = 16;
+	public int maxTurns = 500;
+	public int maxFood = 3;
 
 	@Override
 	public GameInstance createGameInstance(List<PersistentPlayer> players) {
@@ -37,7 +39,7 @@ public class GameFactory implements GameBuilder {
 				p.getConnection().disconnect();
 			}
 		}
-		GameRunner gr = new GameRunner(players, boardSize);
+		GameRunner gr = new GameRunner(players, boardSize, maxTurns, maxFood);
 		FrameVisualiser fv = new FrameVisualiser();
 		EventBasedFrameVisualiser<VisualGameState> vis = new EventBasedFrameVisualiser<VisualGameState>(gr, fv,
 				new VisualGameState(boardSize, players.size(), players));

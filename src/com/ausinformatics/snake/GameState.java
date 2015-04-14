@@ -20,7 +20,6 @@ import com.ausinformatics.snake.visualisation.VisualGameState;
 public class GameState {
 
 	private static int INITIAL_SIZE = 5;
-	private static int TOTAL_FOOD = 3;
 
 	public static int BLANK = 0;
 	public static int FOOD = -1;
@@ -28,6 +27,8 @@ public class GameState {
 	private EventBasedFrameVisualiser<VisualGameState> vis;
 	private int numPlayers;
 	private int boardSize;
+	private int maxFood;
+	private int maxTurns;
 	private Action[] actions;
 	private GamePerson[] players;
 	private int board[][];
@@ -35,9 +36,11 @@ public class GameState {
 	private int tick;
 	private MoveReporter initialReporter;
 
-	public GameState(int numPlayers, int boardSize) {
+	public GameState(int numPlayers, int boardSize, int maxTurns, int maxFood) {
 		this.numPlayers = numPlayers;
 		this.boardSize = boardSize;
+		this.maxTurns = maxTurns;
+		this.maxFood = maxFood;
 		actions = new Action[numPlayers];
 		players = new GamePerson[numPlayers];
 
@@ -191,7 +194,7 @@ public class GameState {
 		if (alive <= 1) {
 			return true;
 		}
-		if (tick >= 500) {
+		if (tick >= maxTurns) {
 			return true;
 		}
 		return false;
@@ -202,7 +205,7 @@ public class GameState {
 	}
 
 	private void repopulateFood(List<Position> foodP) {
-		while (curFood < TOTAL_FOOD) {
+		while (curFood < maxFood) {
 			Random rand = new Random();
 			int fR = rand.nextInt(boardSize);
 			int fC = rand.nextInt(boardSize);
