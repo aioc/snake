@@ -191,7 +191,7 @@ public class GameState {
 		if (alive <= 1) {
 			return true;
 		}
-		if (tick >= 200) {
+		if (tick >= 500) {
 			return true;
 		}
 		return false;

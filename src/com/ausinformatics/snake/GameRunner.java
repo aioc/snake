@@ -125,7 +125,7 @@ public class GameRunner implements GameHandler {
 		vis.giveEvent(new SnakeWinnerEvent(100000, name));
 		vis.giveEvent(new EndGameEvent());
 		int round = 0;
-		while (!vis.finishedVisualising() && vis.isVisualising() && round < 100) {
+		while (!vis.finishedVisualising() && vis.isVisualising() && round < 500) {
 			try {
 				round++;
 				Thread.sleep(100);
