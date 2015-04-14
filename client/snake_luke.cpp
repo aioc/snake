@@ -180,9 +180,39 @@ void calcAreas() {
 	}
 }
 
+struct point getTheirHead() {
+	int them;
+	for (them = 0; them < numP; them++) {
+		if (curLength[them] > 0 && them != id) break;
+	}
+	int i, j;
+	int maxH = 0;
+	struct point p;
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if (player[i][j] == them + 1 && board[i][j] > maxH) {
+				maxH = board[i][j];
+				p.r = i;
+				p.c = j;
+			}
+		}
+	}
+	return p;
+}
+
+void markThemSeen(struct point h) {
+	int i;
+	for (i = 0; i < 4; i++) {
+		struct point n = move(h, i);
+		if (!val(n)) continue;
+		seen[n.r][n.c] = seenC;
+	}
+}
+
 int findFood() {
 	printf ("Finding food!\n");
 	seenC++;
+	markThemSeen(getTheirHead());
 	qS = qE = 0;
 	queue[qE++] = myHead;
 	struct point c;
@@ -210,29 +240,9 @@ int findFood() {
 	return randGoodMove();
 }
 
-struct point getTheirHead(int them) {
-	int i, j;
-	int maxH = 0;
-	struct point p;
-	for (i = 0; i < size; i++) {
-		for (j = 0; j < size; j++) {
-			if (player[i][j] == them + 1 && board[i][j] > maxH) {
-				maxH = board[i][j];
-				p.r = i;
-				p.c = j;
-			}
-		}
-	}
-	return p;
-}
-
 int findThem() {
 	printf ("Finding them （｀ー´）\n");
-	int them;
-	for (them = 0; them < numP; them++) {
-		if (curLength[them] > 0 && them != id) break;
-	}
-	struct point target = getTheirHead(them);
+	struct point target = getTheirHead();
 	seenC++;
 	qS = qE = 0;
 	queue[qE++] = myHead;
@@ -268,7 +278,7 @@ int findThem() {
 
 int findMove() {
 	calcAreas();
-	if (curLength[id] > 0) {
+	if (curLength[id] > size) {
 		return findThem();
 	} else {
 		return findFood();

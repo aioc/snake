@@ -18,8 +18,8 @@ struct point myHead;
 int curLength[MAX_NUM_PLAYERS];
 
 void clientRegister(void) {
-	setName("A simple farmer");
-	setColour(0, 255, 0);
+	setName("Follower");
+	setColour(0, 0, 0);
 }
 
 void clientInit(int numPlayers, int boardSize, int pid) {
@@ -74,7 +74,8 @@ void clientPlayerDied(int pid) {
 				player[i][j] = 0;
 			}
 		}
-	}	
+	}
+	curLength[pid] = 0;
 }
 
 void clientFoodAdded(struct point position) {
@@ -158,6 +159,7 @@ int findArea(struct point p, int a) {
 }
 
 void calcAreas() {
+	seenC++;
 	int i, j;
 	for (i = 0; i < size; i++) {
 		for (j = 0; j < size; j++) {
@@ -178,9 +180,9 @@ void calcAreas() {
 	}
 }
 
-int findMove() {
+int findFood() {
+	printf ("Finding food!\n");
 	seenC++;
-	calcAreas();
 	qS = qE = 0;
 	queue[qE++] = myHead;
 	struct point c;
@@ -207,6 +209,71 @@ int findMove() {
 	}
 	return randGoodMove();
 }
+
+struct point getTheirHead(int them) {
+	int i, j;
+	int maxH = 0;
+	struct point p;
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if (player[i][j] == them + 1 && board[i][j] > maxH) {
+				maxH = board[i][j];
+				p.r = i;
+				p.c = j;
+			}
+		}
+	}
+	return p;
+}
+
+int findThem() {
+	printf ("Finding them （｀ー´）\n");
+	int them;
+	for (them = 0; them < numP; them++) {
+		if (curLength[them] > 0 && them != id) break;
+	}
+	struct point target = getTheirHead(them);
+	seenC++;
+	qS = qE = 0;
+	queue[qE++] = myHead;
+	struct point c;
+	while (qS < qE) {
+		c = queue[qS++];
+		if (eq(c, target)) break;
+		int i;
+		for (i = 0; i < 4; i++) {
+			struct point n = move(c, i);
+			if (!val(n) && !eq(n, target)) continue;
+			if (lookup[areas[n.r][n.c]] < curLength[id] && !eq(n, target)) continue;
+			seen[n.r][n.c] = seenC;
+			pre[n.r][n.c] = (i + 2) % 4;
+			queue[qE++] = n;
+		}
+	}
+	if (eq(c, target)) {
+		int m = 0;
+		int count = 0;
+		while (!eq(c, myHead)) {
+			count++;
+			m = pre[c.r][c.c];
+			c = move(c, m);
+		}
+		if (count > 1) {
+			return (m + 2) % 4;
+		}
+	}
+	return findFood();
+	
+}	
+
+int findMove() {
+	calcAreas();
+	if (curLength[id] > 0) {
+		return findThem();
+	} else {
+		return findFood();
+	}
+}	
 
 void clientDoTurn(void) {
 	curTurn++;
