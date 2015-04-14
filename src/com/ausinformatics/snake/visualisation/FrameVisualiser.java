@@ -131,7 +131,7 @@ public class FrameVisualiser implements FrameVisualisationHandler<VisualGameStat
 			g.setColor(c);
 			drawSnake(f, g, state.blocks.get(i));
 		}
-		String text = "Snake : " + state.curTurn;
+		String text = "Armada : " + state.curTurn;
 		drawString(g, titleBox, text, Color.BLACK);
 		for (int i = 0; i < state.numPlayers; i++) {
 			drawString(g, playerNameBoxes[i], state.names[i], state.colours[i]);
