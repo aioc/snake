@@ -125,6 +125,20 @@ struct point queue[MAX_BOARD_SIZE * MAX_BOARD_SIZE * MAX_BOARD_SIZE];
 int amoR;
 int route[MAX_BOARD_SIZE * MAX_BOARD_SIZE * MAX_BOARD_SIZE];
 
+int absV(int n) {return n < 0 ? n : -n;}
+
+int mahD(struct point p1, struct point p2) {
+	return absV(p1.c - p2.c) + absV(p1.r - p2.r);
+}
+
+int disEdge(struct point p) {
+	int m = p.r;
+	if (p.c < m) m = p.c;
+	if (size - p.r - 1 < m) m = size - p.r - 1;
+	if (size - p.c - 1 < m) m = size - p.c - 1;
+	return m;
+}
+
 int val(struct point p) {
 	if (p.r < 0 || p.c < 0 || p.r >= size || p.c >= size) return FALSE;
 	if (seen[p.r][p.c] == seenC) return FALSE;
@@ -244,6 +258,9 @@ int findThem() {
 	printf ("Finding them （｀ー´）\n");
 	struct point target = getTheirHead();
 	seenC++;
+	if (disEdge(myHead) < 1) {
+		markThemSeen(target);
+	}
 	qS = qE = 0;
 	queue[qE++] = myHead;
 	struct point c;
