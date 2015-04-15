@@ -10,9 +10,9 @@
 #include <stdarg.h>
 #include <time.h>
 
-#include "trade.h"
+#include "armada.h"
 
-#define VERSION			"v0.2"
+#define VERSION					"v0.2"
 
 #define STATE_INTERNAL			0
 #define STATE_REGISTER			1
@@ -45,7 +45,7 @@ static int sendPrintf(const char *fmt, ...) {
 		fprintf(stderr, "%s", buf);
 		fprintf(stderr, "\"\x1b[0m\n");
 	}
-	return 0; 
+	return 0;
 }
 
 static void ensureState(int s, const char* fn) {
@@ -89,8 +89,7 @@ static int colour_r, colour_g, colour_b;
 static char name[17];
 
 static int move_made;
-static int no_move_wanted;
-static int move_r, move_c, move_d;
+static int move_d;
 
 void setName(const char *n) {
 	ensureState(STATE_REGISTER, "setName");
@@ -112,20 +111,12 @@ void setColour(int r, int g, int b) {
 	colour_b = clamp(0, b, 255);
 }
 
-void makeMove(int r, int c, int d) {
+void makeMove(int d) {
 	ensureState(STATE_MAKEMOVE, "makeMove");
-	move_r = r;
-	move_c = c;
 	move_d = d;
 	move_made = TRUE;
-	no_move_wanted = FALSE;
 }
 
-void makeNoMove(void) {
-	ensureState(STATE_MAKEMOVE, "makeMove");
-	no_move_wanted = TRUE;
-	move_made = TRUE;
-}
 
 ///////////////////////////////////////////////
 //
@@ -145,7 +136,7 @@ static int handleName(char *args) {
 	state = STATE_INTERNAL;
 
 	if (name[0] == '\0') {
-		strcpy(name, "forget-a-lot");	
+		strcpy(name, "forget-a-lot");
 	}
 	if (sendPrintf("NAME %s %d %d %d\n", name, colour_r, colour_g, colour_b)) {
 		return -1;
@@ -159,61 +150,98 @@ static int handleError(char *args) {
 	return 0;
 }
 
-static int num_producers, num_consumers;
-
-static int seen_producers, seen_consumers;
-static struct producer_info producers[MAX_PRODUCERS];
-static struct consumer_info consumers[MAX_CONSUMERS];
-
-static void possiblyGiveEntityInfo(void) {
-	if (seen_producers == num_producers && seen_consumers == num_consumers) {
-		alarm(1);
-		clientEntityInfo(num_producers, num_consumers, producers, consumers);
-		alarm(0);
-	}
-}
-
 static int handleNewGame(char *args) {
-	int num_players, board_size, num_types;
-	int starting_money;
+	int num_players, board_size;
 	int pid;
 	// Big sscanf
-	if (sscanf(args, "%d %d %d %d %d %d %d", &num_players, &board_size, &num_types, &num_producers, &num_consumers, &starting_money, &pid) != 7) {
+	if (sscanf(args, "%d %d %d", &num_players, &board_size, &pid) != 3) {
 		internalError("Bad arguments on NEWGAME: %s\n", args);
 	}
 	alarm(1);
-	clientInit(num_players, board_size, num_types, starting_money, pid);
+	clientInit(num_players, board_size, pid);
 	alarm(0);
-	seen_producers = seen_consumers = 0;
 	if (sendPrintf("READY\n")) {
 		return -1;
 	}
-	possiblyGiveEntityInfo();
 	return 0;
 }
 
-static int handleProd(char *args) {
-	struct producer_info *p = &producers[seen_producers++];
-	if (sscanf(args, "%d %d %d %d", &p->r, &p->c, &p->type, &p->value) != 4) {
-		internalError("Bad arguments on PROD: %s\n", args);
+static int start_block_size;
+static int start_block_pid;
+static int start_block_seen;
+static struct point start_blocks[MAX_BOARD_SIZE * MAX_BOARD_SIZE];
+
+static int handleStart(char* args) {
+	if (sscanf(args, "%d %d", &start_block_pid, &start_block_size) != 2) {
+		internalError("Bad arguments on START: %s\n", args);
 	}
-	possiblyGiveEntityInfo();
+	start_block_seen = 0;
 	return 0;
 }
 
-static int handleCons(char *args) {
-	struct consumer_info *c = &consumers[seen_consumers++];
-	if (sscanf(args, "%d %d %d", &c->r, &c->c, &c->type) != 3) {
-		internalError("Bad arguments on CONS: %s\n", args);
+static int handleStartBlock(char* args) {
+	int r, c;
+	if (sscanf(args, "%d %d", &r, &c) != 2) {
+		internalError("Bad arguments on STARTBLOCK: %s\n", args);
 	}
-	possiblyGiveEntityInfo();
+	start_blocks[start_block_seen].r = r;
+	start_blocks[start_block_seen].c = c;
+	start_block_seen++;
+	if (start_block_seen == start_block_size) {
+		alarm(1);
+		clientStartPositions(start_block_pid, start_block_size, start_blocks);
+		alarm(0);
+	}
+	return 0;
+}
+
+static int handleMoved(char* args) {
+	int pid;
+	struct point h, t;
+	int readTail = TRUE;
+	if (sscanf(args, "%d %d %d %d %d", &pid, &h.r, &h.c, &t.r, &t.c) != 5) {
+		if (sscanf(args, "%d %d %d", &pid, &h.r, &h.c) != 3) {
+			internalError("Bad arguments on MOVED: %s\n", args);
+		}
+		readTail = FALSE;
+	}
+	alarm(1);
+	clientAddHead(pid, h);
+	alarm(0);
+	if (readTail) {
+		alarm(1);
+		clientRemoveTail(pid, t);
+		alarm(0);
+	}
+	return 0;
+}
+
+static int handleDied(char* args) {
+	int pid;
+	if (sscanf(args, "%d ", &pid) != 1) {
+		internalError("Bad arguments on DIED: %s\n", args);
+	}
+	alarm(1);
+	clientPlayerDied(pid);
+	alarm(0);
+	return 0;
+}
+
+static int handleFood(char* args) {
+	struct point p;
+	if (sscanf(args, "%d %d", &p.r, &p.c) != 2) {
+		internalError("Bad arguments on FOOD: %s\n", args);
+	}
+	alarm(1);
+	clientFoodAdded(p);
+	alarm(0);
 	return 0;
 }
 
 static int handleYourMove(char *args) {
 	move_made = FALSE;
 	state = STATE_MAKEMOVE;
-	alarm(2);
+	alarm(1);
 	clientDoTurn();
 	alarm(0);
 	state = STATE_INTERNAL;
@@ -222,50 +250,14 @@ static int handleYourMove(char *args) {
 		fprintf(stderr, "No	move was made\n");
 		raise(SIGUSR1);
 	}
-	if (no_move_wanted) {
-		if (sendPrintf("MOVE\n")) {
-			return -1;
-		}
-	} else {
-		if (sendPrintf("MOVE %d %d %d\n", move_r, move_c, move_d)) {
-			return -1;
-		}
+	if (sendPrintf("MOVE %d\n", move_d)) {
+		return -1;
 	}
-	return 0;
-}
-
-static int handleCashmoney(char *args) {
-	int pid, m;
-	if (sscanf(args, "%d %d", &pid, &m) != 2) {
-		internalError("Bad arguments on CASHMONEY: %s\n", args);
-	}
-	alarm(1);
-	clientPlayerUpdate(pid, m);
-	alarm(0);
-	return 0;
-}
-
-static int handleInvest(char *args) {
-	int pid;
-	int r, c, d;
-	r = 420;
-	c = 1337;
-	d = 9001;
-	int was_move = TRUE;
-	if (sscanf(args, "%d %d %d %d", &pid, &r, &c, &d) != 4) {
-		if (sscanf(args, "%d", &pid) != 1) {
-			internalError("Bad arguments on INVEST: %s\n", args);
-		}
-		was_move = FALSE;
-	}
-	alarm(1);
-	clientPlayerMoved(pid, was_move, r, c, d);
-	alarm(0);
 	return 0;
 }
 
 static int handleGameOver(char *args) {
-	fprintf(stderr, "Game over! %s\n", args);	
+	fprintf(stderr, "Game over! %s\n", args);
 	return 0;
 }
 
@@ -288,11 +280,13 @@ static struct command commands[] = {
 	{"ERROR", handleError},
 	{"BADPROT", handleError},
 	{"NEWGAME", handleNewGame},
-	{"PROD", handleProd},
-	{"CONS", handleCons},
+	// Snake server commands
+	{"START", handleStart},
+	{"STARTBLOCK", handleStartBlock},
+	{"MOVED", handleMoved},
+	{"DIED", handleDied},
+	{"FOOD", handleFood},
 	{"YOURMOVE", handleYourMove},
-	{"CASHMONEY", handleCashmoney},
-	{"INVEST", handleInvest},
 	{"GAMEOVER", handleGameOver},
 };
 
@@ -534,7 +528,3 @@ int main(int argc, char *argv[]) {
 	}
 	return EXIT_SUCCESS;
 }
-
-
-
-

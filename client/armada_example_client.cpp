@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
-#include "snake.h"
+#include "armada.h"
 
 #define BLANK			0
 #define FOOD			-1
