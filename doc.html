@@ -141,15 +141,15 @@ implement the functions described below in your source file.</p>
   initialised here.
 </p>
 
-<pre>void clientInit(int numPlayers, int boardSize, int pid) {
+<pre>void clientInit(int numPlayers, int boardSize, int playerID) {
     numP = numPlayers;
     size = boardSize;
-    myID = pid;
+    myID = playerID;
 
     // Initialise state...
     int i, j;
-    for (i = 0; i < size; i++) {
-        for (j = 0; j < size; j++) {
+    for (i = 0; i &lt; size; i++) {
+        for (j = 0; j &lt; size; j++) {
             board[i][j] = -1;
         }
     }
@@ -160,7 +160,7 @@ implement the functions described below in your source file.</p>
 <h3>clientStartPositions</h3>
 
 <p>
-  <i>clientStartPosition(int playerID, int length, struct point* positions)</i>
+  <i>clientStartPositions(int playerID, int length, struct point* positions)</i>
   is called at the start of a game, after clientInit is called. It will be called
   once for each player in the game, informing the client of the
   positions of each of the ships in the player's armada. The argument
@@ -171,17 +171,17 @@ implement the functions described below in your source file.</p>
   the row and column of the ship, respectively.
 </p>
 
-<pre>void clientStartPositions(int pid, int length, struct point* positions) {
+<pre>void clientStartPositions(int playerID, int length, struct point* positions) {
     int i;
-    for (i = 0; i < length; i++) {
-        board[positions[i].r][positions[i].c] = pid;
+    for (i = 0; i &lt; length; i++) {
+        board[positions[i].r][positions[i].c] = playerID;
     }
-    if (pid == myID) {
+    if (playerID == myID) {
         myHead = positions[0];
     }
 }</pre>
 
-<p><i>clientCardsLeft()</i> must return with one second.</p>
+<p><i>clientStartPositions</i> must return with one second.</p>
 
 <h3>clientAddHead</h3>
 
@@ -193,9 +193,9 @@ implement the functions described below in your source file.</p>
   the new head is indicated by <i>position</i>
 </p>
 
-<pre>void clientAddHead(int pid, struct point position) {
-    board[position.r][position.c] = pid;
-    if (pid == id) {
+<pre>void clientAddHead(int playerID, struct point position) {
+    board[position.r][position.c] = playerID;
+    if (playerID == id) {
         myHead = position;
     }
 }</pre>
@@ -210,7 +210,7 @@ implement the functions described below in your source file.</p>
   the previous position of tail is indicated by <i>position</i>
 </p>
 
-<pre>void clientRemoveTail(int pid, struct point position) {
+<pre>void clientRemoveTail(int playerID, struct point position) {
     board[position.r][position.c] = -1;
 }</pre>
 
@@ -224,11 +224,11 @@ implement the functions described below in your source file.</p>
   the previous turn. The argument <i>playerID</i> indicates the player
   id of the eliminated fleet.
 
-<pre>void clientPlayerDied(int pid) {
+<pre>void clientPlayerDied(int playerID) {
   int i, j;
-  for (i = 0; i < size; i++) {
-       for (j = 0; j < size; j++) {
-            if (board[i][j] == pid) {
+  for (i = 0; i &lt; size; i++) {
+       for (j = 0; j &lt; size; j++) {
+            if (board[i][j] == playerID) {
                 board[i][j] = -1;
             }
         }
@@ -249,8 +249,8 @@ implement the functions described below in your source file.</p>
 
 <p>
   <i>clientDoTurn()</i> is called when it's your turn to make a move.  Do so by
-  calling <i>makeMove(int direction)</i>.  Argument <i>cardVal</i>
-  should be used toto specify the direction that you wish your fleet's
+  calling <i>makeMove(int direction)</i>.  Argument <i>direction</i>
+  should be used to specify the direction that you wish your fleet's
   head to move in. (Note that directions are defined in armada.h as
   UP, RIGHT, DOWN and LEFT) If you call attempt to
   call <i>makeMove()</i> multiple times during your turn, only the
@@ -262,10 +262,10 @@ implement the functions described below in your source file.</p>
 <p><i>clientDoTurn()</i> must return with one second.</p>
 
 <pre>void clientDoTurn() {
-    makeMove(UP); // Quick! Run away! As far up as we can go!
+    makeMove(DOWN); // Quick! Run away! As far down as we can go!
     // Note that this will either cause the head of the fleet to run
-    // into itself if the head begins downwards relative to the next
-    // ship in line, or it will eventually hit the top of the map if
+    // into itself if the head begins upwards relative to the next
+    // ship in line, or it will eventually hit the bottom of the map if
     // it doesn't hit another ship first.
 }</pre>
 

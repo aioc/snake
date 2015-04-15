@@ -17,7 +17,7 @@ public class GamePerson {
 	public GamePerson(Position head, Position tail) {
 		blocks = new ArrayDeque<>();
 		Position cur = head.clone();
-		blocks.push(cur);
+		blocks.addLast(cur);
 		while (!cur.equals(tail)) {
 			if (cur.c < tail.c) {
 				cur = cur.move(Position.RIGHT);
@@ -28,7 +28,7 @@ public class GamePerson {
 			} else if (cur.r > tail.r) {
 				cur = cur.move(Position.UP);
 			}
-			blocks.push(cur);
+			blocks.addLast(cur);
 		}
 		amAlive = true;
 	}
